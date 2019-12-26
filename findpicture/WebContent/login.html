@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	table,td{border:1px solid gray;}
+	table {border-collapse: collapse;}
+	
+
+	html, body
+	{
+	    height: 100%;
+	}
+	
+	body
+	{
+	    display: table;
+	    margin: 0 auto;
+	}
+	
+	.container
+	{
+	    height: 100%;
+	    display: table-cell;
+	    vertical-align: middle;
+	}
+	
+	.main
+	{
+	    height: 200px;
+	    width: 200px;
+	    background-color: blue;     
+	}
+
+</style>
+<meta charset="UTF-8">
+<script src="/findpicture/scripts/jquery-3.4.1.min.js"></script>
+<title>Insert title here</title>
+</head>
+<h1 id="index">INDEX</h1>
+<body id="container">
+	<h1>LOGIN</h1>
+	<table border="1">
+		<tr>
+			<td>Member_id</td>
+			<td><input type="text" id="memberId"></td>
+		</tr>
+		<tr>
+			<td>Member_pw</td>
+			<td><input type="text" id="memberPw"></td>
+		</tr>
+	</table>
+	<button type="button" id="loginBtn">입력</button>
+	<button type="button" id="joinBtn">회원가입</button>
+</body>
+<script>
+	$("#loginBtn").click(function(){
+		if($("#memberId").val() === "" && $("#memberPw").val() === ""){			
+			alert("정보를 입력하세요");
+			return;
+		}		
+		$.ajax({
+			url: "/findpicture/Login",
+			method: "post",
+			data: {"memberId":$("#memberId").val(), "memberPw":$("#memberPw").val()},
+			success: function(json){
+				if(json == null){
+					alert("x");
+					location.href = "/findpicture/login.html";
+				}else{
+					alert("로그인 성공");
+					$.ajax({
+						url: "/findpicture/GetSessionInfo",
+						method: "POST",
+						async: false, //동기요청
+						success: function(json){
+							loginState = json;
+							console.log(loginState);
+						}
+					});
+					location.href = "/findpicture/index.html";					
+				}				
+			}							
+		});				
+	});	
+	
+	$("#joinBtn").click(function(){
+		location.href = "/findpicture/join.html";
+	});
+	
+	//index 돌아가기
+	$("#index").click(function(){
+		location.href = "/findpicture/index.html";
+	})
+</script>
+</html>

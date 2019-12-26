@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html oncontextmenu='return false' ondragstart='return false'>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link href="/findpicture/styles/cardBack.css" rel="stylesheet">
+<style>
+	table,td{border:1px solid gray;}
+	table {border-collapse: collapse;}
+	
+
+	html, body
+	{
+	    height: 100%;
+	}
+	
+	body
+	{
+	    display: table;
+	    margin: 0 auto;
+	}
+	
+	.container
+	{
+	    height: 100%;
+	    display: table-cell;
+	    vertical-align: middle;
+	}
+	
+	.main
+	{
+	    height: 200px;
+	    width: 200px;
+	    background-color: blue;     
+	}
+
+
+</style>
+<script src="/findpicture/scripts/jquery-3.4.1.min.js"></script>
+</head>
+<body oncontextmenu='return false' ondragstart='return false'>
+<h1 id="index">INDEX</h1>
+<h1>PUZZLE - <span id="loginState"></span>-<span id="timer"></span></h1>
+
+<div id="container">
+	<table id="board">	
+	</table>
+	<button type="button" id="startBtn">게임시작</button>
+	<button type="button" id="reBtn">다시하기</button>
+	<button type="button" id="outBtn">로그아웃</button>
+</div>	
+</body>
+<script>
+	let model = ["aa1.jpg","aa1.jpg",
+				 "aa2.jpg","aa2.jpg",				
+				 "aa3.jpg","aa3.jpg",
+				 "aa4.jpg","aa4.jpg",
+				 "aa5.jpg","aa5.jpg",
+				 "aa6.jpg","aa6.jpg",
+				 "aa7.jpg","aa7.jpg",
+				 "aa8.jpg","aa8.jpg",
+				 "aa9.jpg","aa9.jpg",
+				 "aa10.jpg","aa10.jpg",
+				 "aa11.jpg","aa11.jpg",
+				 "aa12.jpg","aa12.jpg",
+				 "aa13.jpg","aa13.jpg",				 
+				 "aa14.jpg","aa14.jpg",
+				 "aa15.jpg","aa15.jpg",
+				 "aa16.jpg","aa16.jpg",
+				 "aa17.jpg","aa17.jpg",
+				 "aa18.jpg","aa18.jpg"
+				];
+				
+				
+	$(document).ready(function(){
+		//sessionInfo 값 요청 동기요청 사용	
+		let loginState = null;
+		$.ajax({
+			url: "/findpicture/GetSessionInfo",
+			method: "POST",
+			async: false, //동기요청
+			success: function(json){
+				loginState = json;
+				console.log(loginState);
+			}
+		});
+		
+		//로그인 확인		
+		if(loginState == null){
+			location.href = "/findpicture/login.html";
+			return false;
+		}
+		
+		//상단에 로그인 id표시
+		$("#loginState").text(loginState);
+			
+		//다시하기
+		$("#reBtn").click(function(){
+			location.href = "/findpicture/puzzle.html";
+		});
+		
+		//로그아웃
+		$("#outBtn").click(function(){
+			$.ajax({
+				url: "/findpicture/Logout",
+				method: "post",
+				async: false,
+				success: function(json){
+					alert("로그아웃");
+					location.href = "/findpicture/login.html";
+				}
+			});
+		});
+				
+		//모델 셔플
+		for(let i=0; i<100000; i++){
+			let ran = Math.floor(Math.random()*36);
+			let tmp = model[0];
+			model[0] = model[ran];
+			model[ran] = tmp;
+		}
+		
+		//게임시작 버튼
+		$("#startBtn").click(function(){					
+			$(this).attr("disabled", true);
+			
+		//모델 출력
+		$(model).each(function(index, item){		
+			if(index % 6 ==0){
+				$("#board").append("<tr></tr>");
+			}
+			$("#board").append("<td><input class='pic' type='image' src='/findpicture/images/"+item+"'></td>");
+			
+		});
+		
+		//타이머
+		let timerNum = 0;
+		timer = setInterval(function(){
+			timerNum++;
+			$("#timer").text(timerNum)
+		}, 1000);
+		
+		
+		
+		//시작 후 이미지 사라짐
+					
+		$(".pic").each(function(){
+			$(this).attr("disabled", true);	
+			$(this).animate({opacity: 0.01, disabled:false}, 3000);	
+		});
+				
+		//게임 변수 설정
+		let total = 0; //전체 몇번 클릭했는지 
+		let state = 0; // 0 or 1 or 2 선택했을때
+		let success = 0; // 몇개의 그림을 맞췄는지
+		let onePic = null;
+		let twoPic = null;
+				
+		
+		//게임시작 후 클릭
+		$(".pic").click(function(){
+			$(this).attr("disabled", true);
+			//console.log($(this).attr("src"));
+			total++;
+			state++;	
+			$(this).attr("disabled", true);//더블클릭방지
+			if(state == 1){
+				console.log("state 1");
+				$(this).animate({opacity: 1},100);
+				onePic = $(this);
+				
+			} else if(state == 2){
+				console.log("state 2");
+				$(this).animate({opacity: 1},1);
+				twoPic = $(this);
+				if($(onePic).attr("src") == $(twoPic).attr("src")){					
+					success++;	
+					console.log(success);
+					if(success == model.length/2){
+						clearInterval(timer);
+						alert("게임종료 시간("+timerNum+"), 횟수("+total+")");
+						$.ajax({
+							url: "/findpicture/AddReport",
+							method: "post",
+							data: {"loginState": loginState,"timerNum": timerNum, "total": total},
+							success: function(){
+								console.log("입력완료");
+							}
+						});
+						console.log("게임종료 시간("+timerNum+"), 횟수("+total+")");
+						return;
+					}
+				} else{
+					$(onePic).animate({opacity: 0.01},100);
+					$(twoPic).animate({opacity: 0.01},100);
+					$(onePic).attr("disabled", false);
+					$(twoPic).attr("disabled", false);
+				}
+				state = 0;
+				}
+
+			
+			});	
+		});
+	});
+				
+		//index 돌아가기
+		$("#index").click(function(){
+			location.href = "/findpicture/index.html";
+		})
+		
+		
+</script>
+</html>

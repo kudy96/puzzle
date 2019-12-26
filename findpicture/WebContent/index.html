@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="/findpicture/scripts/jquery-3.4.1.min.js"></script>
+<title>Index</title>
+<style>
+	table,td{border:1px solid gray;}
+	table {border-collapse: collapse;}
+	
+	#logout{
+		display: block
+	}
+	
+	#login {
+		display: none;
+	}
+	
+	html, body
+	{
+	    height: 100%;
+	}
+	
+	body
+	{
+	    display: table;
+	    margin: 0 auto;
+	}
+	
+	.container
+	{
+	    height: 100%;
+	    display: table-cell;
+	    vertical-align: middle;
+	}
+	
+	.main
+	{
+	    height: 200px;
+	    width: 200px;
+	    background-color: blue;     
+	}
+
+</style>
+</head>
+<body>
+<h1>INDEX ★<span id="loginState"></span></h1>
+<!-- select * from report order by timer asc, count asc //기본  리스트
+	(top 10) limit 10
+	(today 10) 날짜 함수 report_date == 날짜함수 (now()) limit 10
+	(my list) where member_id=?
+
+ -->
+ <!-- 로그인 전 -->
+<div id="logout">
+	<div id="container">	
+		<button type="button" id="loginBtn">로그인</button>
+	</div>			
+	<div id="container">
+		<button type="button" id="joinBtn">회원가입</button>
+	</div>
+</div>
+<!-- 로그인 후 -->
+<div id="login">
+	<div id="container">
+		<button type="button" id="topAll">Top 10</button>
+		<button type="button" id="topToday">오늘의 Top 10</button>
+		<button type="button" id="topMonth">이달의 Top 10</button>
+		<button type="button" id="topMy">나의 점수</button>
+	</div>
+	<div id="container">
+		<button type="button" id="gameBtn">게임시작</button>
+	</div>
+	<div id="container">
+		<button id="outBtn">로그아웃</button>
+		<button id="updateBtn">비밀번호 수정</button>
+		<button id="deleteBtn">회원탈퇴</button>
+	</div>
+</div>
+	<label>내 점수</label>
+<table>
+	<thead>
+		<tr>
+			<td>memberId</td>
+			<td>reportDate</td>
+			<td>Count</td>
+			<td>timer</td>
+		</tr>
+	</thead>	
+	<tbody id="list">
+	</tbody>
+</table>
+</body>
+<script>
+	
+	//상단에 로그인 id표시
+	let loginState = null;
+	$.ajax({
+		url: "/findpicture/GetSessionInfo",
+		method: "POST",
+		async: false,
+		success: function(json){
+			loginState = json;			
+			$("#loginState").text(loginState);	
+			console.log(loginState);		
+		}
+	});	
+	
+	//로그인화면 보여줄것
+	console.log("loginState//// :" + loginState);
+	
+	if(loginState != null) {
+		$("#login").css("display", "block");
+		$("#logout").css("display", "none");
+	} else {
+		$("#logout").css("display", "block");
+		$("#login").css("display", "none");
+	}
+	 
+	
+	
+	//로그인 회원가입 버튼
+	$("#loginBtn").click(function(){
+		location.href="/findpicture/login.html";
+	})
+	
+	$("#joinBtn").click(function(){
+		location.href="/findpicture/join.html";
+	})
+
+	//로그아웃
+	$("#outBtn").click(function(){
+		$.ajax({
+			url: "/findpicture/Logout",
+			method: "post",
+			async: false,
+			success: function(json){
+				alert("로그아웃");
+				location.href = "/findpicture/index.html";
+			}
+		});
+	});
+	
+	//비밀번호 수정
+	$("#updateBtn").click(function(){
+		location.href = "/findpicture/update.html";
+	});
+	
+	//회원탈퇴
+	$("#deleteBtn").click(function(){
+		$.ajax({
+			url: "/findpicture/Delete",
+			method: "post",
+			data: {"loginState": loginState},
+			success: function(json){
+				$.ajax({
+					url: "/findpicture/Logout",
+					method: "post",
+					async: false,
+					success: function(json){
+						alert("회원탈퇴");
+						location.href = "/findpicture/index.html";
+					}
+				});			
+			}
+		});
+	});
+
+	//게임시작 버튼
+	$("#gameBtn").click(function(){
+		location.href="/findpicture/puzzle.html"
+	});
+	//리스트 버튼 topAll, topToday, topMonth
+	
+	$("#topAll").click(function(){	
+		//$(this).attr("disabled", true);
+		$("#list").empty();
+		$.ajax({
+			url: "/findpicture/TopReportAll",
+			method: "post",
+			success: function(json){
+				console.log(json);
+				for(let i=0; i<json.length; i++){
+					let html = "<tr>";
+					html += "<td>"+json[i].memberId+"</td>";
+					html += "<td>"+json[i].reportDate+"</td>";
+					html += "<td>"+json[i].count+"</td>";
+					html += "<td>"+json[i].timer+"</td>";
+					html += "</tr>";
+				$("#list").append(html);
+				}
+			}		
+		});
+	});
+	
+	//topToday
+	$("#topToday").click(function(){
+		$("#list").empty();
+		$.ajax({
+			url: "/findpicture/TopReportToday",
+			method: "post",
+			success: function(json){
+				console.log(json)
+				for(let i=0; i<json.length; i++){
+					let html = "<tr>";
+					html += "<td>"+json[i].memberId+"</td>";
+					html += "<td>"+json[i].reportDate+"</td>";
+					html += "<td>"+json[i].count+"</td>";
+					html += "<td>"+json[i].timer+"</td>";
+					html += "</tr>";
+				$("#list").append(html);
+				}				
+			}
+		});
+	});
+
+	
+	//topMonth
+	$("#topMonth").click(function(){
+		$("#list").empty();
+		$.ajax({
+			url: "/findpicture/TopReportMonth",
+			method: "post",
+			success: function(json){
+				console.log(json)
+				for(let i=0; i<json.length; i++){
+					let html = "<tr>";
+					html += "<td>"+json[i].memberId+"</td>";
+					html += "<td>"+json[i].reportDate+"</td>";
+					html += "<td>"+json[i].count+"</td>";
+					html += "<td>"+json[i].timer+"</td>";
+					html += "</tr>";
+				$("#list").append(html);
+				}				
+			}				
+		});	
+	});
+	
+	//topMy
+	$("#topMy").click(function(){
+		$("#list").empty();
+		console.log(loginState);
+		$.ajax({
+			url: "/findpicture/TopReportMy",
+			method: "post",
+			data: {"loginState": loginState},
+			success: function(json){
+				console.log(json)
+				for(let i=0; i<json.length; i++){
+					let html = "<tr>";
+					html += "<td>"+json[i].memberId+"</td>";
+					html += "<td>"+json[i].reportDate+"</td>";
+					html += "<td>"+json[i].count+"</td>";
+					html += "<td>"+json[i].timer+"</td>";
+					html += "</tr>";
+				$("#list").append(html);
+				}				
+			}				
+		});	
+	});
+	
+</script>
+</html>

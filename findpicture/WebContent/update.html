@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	table,td{border:1px solid gray;}
+	table {border-collapse: collapse;}
+	
+
+	html, body
+	{
+	    height: 100%;
+	}
+	
+	body
+	{
+	    display: table;
+	    margin: 0 auto;
+	}
+	
+	.container
+	{
+	    height: 100%;
+	    display: table-cell;
+	    vertical-align: middle;
+	}
+	
+	.main
+	{
+	    height: 200px;
+	    width: 200px;
+	    background-color: blue;     
+	}
+
+</style>
+<script src="/findpicture/scripts/jquery-3.4.1.min.js"></script>
+<meta charset="UTF-8">
+<title>Update</title>
+</head>
+<body>
+<h1 id="index">INDEX</h1>
+<h1>비밀번호 수정</h1>
+<div id="container">
+	<table>
+		<tr>
+			<td>아이디</td>
+			<td><input type="text" id="memberId" readonly="readonly"></td>
+		</tr>
+		<tr>
+			<td>비밀번호 설정</td>
+			<td><input type="text" id="memberPw"></td>
+		</tr>
+	</table>
+	<button type="button" id="updateBtn">수정완료</button>
+</div>
+</body>
+<script>
+	
+	
+	
+	//index 돌아가기
+	$("#index").click(function(){
+		location.href = "/findpicture/index.html";
+	})
+	
+	//아이디 자동 입력
+	let loginState = null;
+	$.ajax({
+		url: "/findpicture/GetSessionInfo",
+		method: "POST",
+		success: function(json){
+			loginState = json;
+			console.log(loginState);
+			$("#memberId").val(loginState);
+		}
+	});		
+	
+	//업데이트 완료
+	$("#updateBtn").click(function(){
+		$.ajax({
+			url: "/findpicture/Update",
+			method: "post",
+			data: {"memberId":$("#memberId").val(), "memberPw":$("#memberPw").val()},
+			success: function(json){
+				console.log(json);
+				alert("수정완료");
+				location.href = "/findpicture/index.html";
+			}
+		});
+	});
+</script>
+</html>

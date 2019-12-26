@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	table,td{border:1px solid gray;}
+	table {border-collapse: collapse;}
+	
+
+	html, body
+	{
+	    height: 100%;
+	}
+	
+	body
+	{
+	    display: table;
+	    margin: 0 auto;
+	}
+	
+	.container
+	{
+	    height: 100%;
+	    display: table-cell;
+	    vertical-align: middle;
+	}
+	
+	.main
+	{
+	    height: 200px;
+	    width: 200px;
+	    background-color: blue;     
+	}
+
+</style>
+<meta charset="UTF-8">
+<title>Join</title>
+</head>
+<body>
+<div>
+<h1 id="index">INDEX</h1>
+<h1>JOIN</h1>
+	<table border="1">
+		<tr>
+			<td>ID :</td>
+			<td><input type="text" id="memberId"></td>
+		</tr>
+		<tr>
+			<td>PW :</td>
+			<td><input type="text" id="memberPw"></td>
+		</tr>
+	</table>
+	<button type="button" id="btn">회원가입</button>
+</div>
+</body>
+<script src="/findpicture/scripts/jquery-3.4.1.min.js"></script>
+<script>
+	$("#btn").click(function(){
+		if($("#memberId").val() === "" && $("#memberPw").val() === ""){			
+			alert("정보를 입력하세요");
+			return;
+		}
+		$.ajax({
+			url: "/findpicture/Join",
+			method: "post",
+			data: {"memberId":$("#memberId").val(), "memberPw":$("#memberPw").val()},
+			success: function(json){
+				alert("회원가입 되었습니다.");
+				location.href = "/findpicture/index.html";
+			}
+		});
+		
+	});
+	
+	//index 돌아가기
+	$("#index").click(function(){
+		location.href="/findpicture/index.html";
+	});
+</script>
+</html>
